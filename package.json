@@ -1,0 +1,26 @@
+{
+  "name": "safelight-hdr-editing",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HDR Editing for Safelight: highlights brighter than SDR white from your edit, an HDR preview on HDR displays, Visualize HDR, an HDR histogram, and Ultra HDR JPEG / HDR AVIF export.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && vite build --config vite.worker.config.ts && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:gpu": "node test/gpu/run.cjs"
+  },
+  "dependencies": {
+    "@jsquash/avif": "2.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@webgpu/types": "^0.1.40",
+    "jpeg-js": "^0.4.4",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.10"
+  },
+  "keywords": ["safelight-extension"],
+  "license": "MIT"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "hdr-editing",
+  "name": "HDR Editing",
+  "version": "1.0.0",
+  "description": "Lightroom-style HDR from your edit: highlights brighter than SDR white up to a headroom you choose, an HDR preview on HDR displays, Visualize HDR, an HDR histogram, and Ultra HDR JPEG (gain map) or HDR AVIF export.",
+  "author": "Anthony Reimche",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "categories": ["Develop", "Export"],
+  "keywords": ["hdr", "high-dynamic-range", "ultra-hdr", "gain-map", "iso-21496-1", "avif", "pq", "rec2020", "webgpu"],
+  "minAppVersion": "3.0.0"
+}
