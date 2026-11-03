@@ -61,7 +61,7 @@ describe("session store: who closes a pair's bitmaps", () => {
     expect(store().getState().pair).toBeNull();
   });
 
-  it("closes the pair of the store it replaces when initialised again", () => {
+  it("closes the pair of the store it replaces when initialized again", () => {
     const a = pair();
     store().getState().setPair(a, samples);
     initStore();

@@ -270,7 +270,7 @@ describe("encodeGreyJpeg round trips", () => {
     [10, 32],
     [1, 22],
   ])("still reconstructs a diagonal ramp at quality %i (PSNR above %i dB)", (quality, floor) => {
-    // Measured PSNR: 44.3, 35.8 and 26.5 dB. The point is that the quantiser and
+    // Measured PSNR: 44.3, 35.8 and 26.5 dB. The point is that the quantizer and
     // the emitted DQT agree when the table is scaled up and clamped at 255.
     const w = 61;
     const h = 45;
@@ -343,7 +343,7 @@ describe("encodeGreyJpeg structure", () => {
     // "JFIF\0", version 1.1, no density unit, 1:1, no thumbnail.
     expect(Array.from(payloadOf(bytes, segments[0]))).toEqual([0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0]);
     // Precision 8, height 520 = 0x0208, width 300 = 0x012c, one component with id 1,
-    // 1x1 sampling and quantisation table 0.
+    // 1x1 sampling and quantization table 0.
     expect(Array.from(payloadOf(bytes, segments[2]))).toEqual([8, 0x02, 0x08, 0x01, 0x2c, 1, 1, 0x11, 0]);
     expect(jpegSize(bytes)).toEqual({ width: 300, height: 520 });
     // Length 8, one component (id 1) on Huffman tables 0/0, Ss = 0, Se = 63, Ah/Al = 0.
@@ -370,7 +370,7 @@ describe("encodeGreyJpeg entropy-coded data", () => {
     // Only coefficient (7,7), the last in zigzag order, is nonzero: 62 zeros
     // precede it, so the encoder must emit three ZRL (0xF0) and then a run of 14.
     // 4·124 = 496, /99 (the quality-50 entry) = 5.01 -> 5, category 3. The
-    // quantiser's step is large enough that rounding noise in the pixels can't
+    // quantizer's step is large enough that rounding noise in the pixels can't
     // flip any other coefficient off zero.
     const block = new Uint8Array(64);
     const basis = (i: number) => Math.cos(((2 * i + 1) * 7 * Math.PI) / 16);

@@ -46,6 +46,7 @@ export interface DevelopStoreState {
 
 export interface CatalogPhotoLike {
   id: string;
+  filename?: string;
   exif: { colorTemperature?: number };
 }
 
@@ -240,6 +241,9 @@ export interface ExportProcessorContext {
    *  this. Rendering the photo again through renderPhotos with the same
    *  longEdge gets the delivered file's pixel grid to within a pixel. */
   longEdge: number | null;
+  /** The settings the export runs with. Needs Safelight 3.2.0; older builds
+   *  leave it out. */
+  settings?: Readonly<ExportSettingsPatch>;
 }
 
 export interface ExportProcessorContribution {
@@ -277,7 +281,10 @@ export interface ExportSettingsPatch {
   longEdge?: number | null;
   colorSpace?: "srgb" | "display-p3" | "adobe-rgb" | "prophoto-rgb";
   sharpenAmount?: number;
+  sharpenRadius?: number;
+  pngBitDepth?: 8 | 16;
   includeMetadata?: boolean;
+  includeLocation?: boolean;
 }
 
 export interface UiKit {

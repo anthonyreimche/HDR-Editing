@@ -9,6 +9,7 @@
 import { avifWorker } from "./avif-worker-client";
 import { PROCESSOR_FIELDS, liveExportDeps, processExport } from "./export";
 import { DISPLAY_HEADROOM_KEY, HdrOverlay } from "./HdrOverlay";
+import { disposeNotice } from "./notice";
 import { HdrPanel } from "./Panel";
 import { OVERLAY_ID, PANEL_ID, PROCESSOR_ID, resetPatch } from "./params";
 import { api, initRuntime } from "./runtime";
@@ -61,14 +62,15 @@ export function activate(host: SafelightAPI): void {
     id: PROCESSOR_ID,
     label: "HDR",
     settings: PROCESSOR_FIELDS,
-    // The context carries the export's long edge, which the nested renders
-    // must repeat to land on the delivered file's pixel grid.
+    // The context carries the export's long edge, which the nested gain map
+    // render must repeat to land on the delivered file's pixel grid.
     process: (blob, photo, settings, context) => processExport(blob, photo, settings, context, liveExportDeps()),
   });
 }
 
 export function deactivate(): void {
   avifWorker.stop();
+  disposeNotice();
   unwatchSupport();
   try {
     clearStore();

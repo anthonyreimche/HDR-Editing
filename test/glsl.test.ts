@@ -51,7 +51,7 @@ describe("gain stage GLSL", () => {
     }
   });
 
-  it("quantises the headroom to tenths in the GLSL, as the file metadata does", () => {
+  it("quantizes the headroom to tenths in the GLSL, as the file metadata does", () => {
     // Pinned on the text: the GPU spec checks the values (2.34 → 2.3).
     expect(GAIN_HELPERS).toMatch(/float hdHeadroom\(float h\)/);
     expect(GAIN_HELPERS).toContain("clamp(h, 0.5, 4.0) * 10.0 + 0.5");

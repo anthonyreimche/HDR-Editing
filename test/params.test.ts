@@ -12,7 +12,7 @@ describe("params", () => {
     expect(GAIN_MAP_PATCH).toEqual({ [`${STAGE_ID}.mode`]: 1 });
   });
 
-  it("clamp, quantise the headroom, and fall back on junk", () => {
+  it("clamp, quantize the headroom, and fall back on junk", () => {
     const p = readParams({ [KEY.headroom]: 2.34, [KEY.start]: -9, [KEY.rolloff]: "x", [KEY.on]: 1 });
     expect(p).toEqual({ on: true, headroom: 2.3, start: -3, rolloff: 1.5, protection: 50 });
   });

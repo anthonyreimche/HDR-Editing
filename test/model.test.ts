@@ -55,7 +55,7 @@ describe("gate", () => {
 });
 
 describe("headroom", () => {
-  it("is quantised to tenths inside [0.5, 4]", () => {
+  it("is quantized to tenths inside [0.5, 4]", () => {
     expect(quantizeHeadroom(2.33)).toBe(2.3);
     expect(quantizeHeadroom(2.35)).toBe(2.4);
     expect(quantizeHeadroom(0.2)).toBe(0.5);
@@ -88,7 +88,7 @@ describe("the encoded gain map", () => {
     }
   });
 
-  it("stays within 8-bit quantisation after rounding to a byte", () => {
+  it("stays within 8-bit quantization after rounding to a byte", () => {
     const s = 0.8;
     const g = 1.37;
     const r8 = Math.round(encodeGain(s, g, 2) * 255) / 255;

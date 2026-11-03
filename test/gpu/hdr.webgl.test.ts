@@ -3,7 +3,7 @@
 // (version 2 declares slSceneLuma in main(), version 1 through the
 // injector); a normal render and HDR off are bit-exact against no stage; the
 // gain map matches the TS twin on a ramp that reaches far past the core
-// shoulder; the headroom is quantised to tenths on the GPU as it is in the
+// shoulder; the headroom is quantized to tenths on the GPU as it is in the
 // file metadata.
 
 import { describe, expect, it } from "vitest";
@@ -159,7 +159,7 @@ describe("HDR gain stage on the real renderer", () => {
 // and the case only means something where the unrounded value would have
 // drawn a different frame: pixels the SDR edit left dark under a high scene
 // luminance, where the offsets weigh most.
-describe("HDR gain stage headroom quantisation", () => {
+describe("HDR gain stage headroom quantization", () => {
   // Stands in for an SDR edit that pulled the highlights down; its `c *= 0.2`
   // runs before the gain stage, which takes the scene luminance from the core.
   const DARKEN: ProcessingStageContribution = {

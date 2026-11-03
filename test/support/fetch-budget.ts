@@ -1,6 +1,6 @@
 // Static per-pixel texture-fetch count of a GLSL block: loops with literal
 // bounds multiply the fetches inside them, helper calls are expanded, every
-// branch is counted (an upper bound), and a loop form the analyser does not
+// branch is counted (an upper bound), and a loop form the analyzer does not
 // understand throws instead of being skipped. Correctness tests on a CPU
 // transcription say nothing about what the GPU executes per draw, and
 // per-draw cost is what hang watchdogs act on.

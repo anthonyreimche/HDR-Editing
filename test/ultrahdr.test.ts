@@ -173,7 +173,7 @@ describe("assembleUltraHdr", () => {
       expect(iso).toEqual(isoGainMapPayload(2.3));
     });
 
-    it("clamps to the 4-stop ceiling that the gain map was normalised by", () => {
+    it("clamps to the 4-stop ceiling that the gain map was normalized by", () => {
       const { xmp, iso } = metadata(5);
       expect(xmp).toContain('hdrgm:GainMapMax="4"');
       expect(xmp).toContain('hdrgm:HDRCapacityMax="4"');

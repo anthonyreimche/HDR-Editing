@@ -88,7 +88,7 @@ export function gainMapXmp(headroom: number): string {
 
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
-/** A headroom quantised to tenths as an exact fraction in lowest terms. */
+/** A headroom quantized to tenths as an exact fraction in lowest terms. */
 export function fraction(v: number): [number, number] {
   const n = Math.round(v * 10);
   const g = gcd(n, 10);
@@ -177,8 +177,8 @@ function endOfImage(bytes: Uint8Array, scan: number): number {
   throw new Error("[hdr-editing] JPEG has no end of image");
 }
 
-/** The headroom is quantised here because the gain map was normalised by the
- *  quantised value: stating any other would mis-scale the HDR rendition, and
+/** The headroom is quantized here because the gain map was normalized by the
+ *  quantized value: stating any other would mis-scale the HDR rendition, and
  *  the XMP and ISO forms would round differently. */
 export function assembleUltraHdr(sdrJpeg: Uint8Array, gainJpeg: Uint8Array, headroom: number): Uint8Array {
   if (!Number.isFinite(headroom)) throw new Error(`[hdr-editing] headroom ${headroom} is not a number`);

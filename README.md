@@ -28,10 +28,15 @@ is exactly the photo you had.
     metadata are written; the gain map is stored at the image's size (a viewer scales
     a gain map of another size to the image, as the format allows).
   - **HDR AVIF** (export format JPEG, PNG or WebP; the file becomes .avif): a 10-bit
-    PQ / Rec.2020 AVIF. It is built from an sRGB render of the photo, so it carries no
-    metadata and no output sharpening. Building it takes several seconds for a typical
-    photo and longer for a large one at full size, in a background worker, so Safelight
-    stays as responsive as during any other export.
+    PQ / Rec.2020 AVIF. On Safelight 3.2.0 or later it is built from a lossless render,
+    so a low JPEG quality doesn't show in it (earlier versions use the exported file). It has the
+    export's output sharpening and size, and carries the exported file's Exif metadata (location only if
+    you included it). The export's colour space doesn't apply: the file is always
+    Rec.2020 PQ, made from sRGB colour. XMP and other metadata aren't carried. Building it
+    takes several seconds for a typical photo and longer for a large one at full size, in
+    a background worker, so Safelight stays as responsive as during any other export.
+    A photo that can't get HDR is exported as it is, and a notice in the corner of the
+    window lists those photos and why.
     Its colour description is written in both the file's colour box and the AV1 stream;
     it is checked in Chromium.
 

@@ -72,3 +72,47 @@ describe("readbackBitmap", () => {
     expect(readbackBitmap(bitmap(64, 32), 400)).toBeNull();
   });
 });
+
+describe("resizeFrame", () => {
+  const ramp = (w: number, h: number) => {
+    const data = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) data.set([Math.round((255 * x) / (w - 1)), 40, 90, 255], (y * w + x) * 4);
+    }
+    return { data, width: w, height: h };
+  };
+
+  it("hands back the frame it was given when it is already that size", async () => {
+    const { resizeFrame } = await import("../src/frame");
+    const f = ramp(8, 4);
+    expect(resizeFrame(f, 8, 4)).toBe(f);
+  });
+
+  it("keeps a flat frame flat at any size", async () => {
+    const { resizeFrame } = await import("../src/frame");
+    const flat = { data: new Uint8ClampedArray(5 * 3 * 4).fill(77), width: 5, height: 3 };
+    const out = resizeFrame(flat, 11, 7);
+    expect([out.width, out.height, out.data.length]).toEqual([11, 7, 11 * 7 * 4]);
+    expect(new Set(out.data)).toEqual(new Set([77]));
+  });
+
+  it("scales a ramp up smoothly, keeping both ends", async () => {
+    const { resizeFrame } = await import("../src/frame");
+    const out = resizeFrame(ramp(4, 2), 16, 4);
+    const row = Array.from({ length: 16 }, (_, x) => out.data[x * 4]);
+    expect(row[0]).toBe(0);
+    expect(row[15]).toBe(255);
+    for (let x = 1; x < 16; x++) expect(row[x]).toBeGreaterThanOrEqual(row[x - 1]);
+    expect(out.data[1]).toBe(40);
+    expect(out.data[3]).toBe(255);
+  });
+
+  it("scales a frame down by sampling at the new pixels' centres", async () => {
+    const { resizeFrame } = await import("../src/frame");
+    const out = resizeFrame(ramp(16, 4), 4, 2);
+    expect([out.width, out.height]).toEqual([4, 2]);
+    // New pixel 0 is centred between source columns 1 and 2: 1.5 / 15 of the ramp.
+    expect(Math.abs(out.data[0] - (255 * 1.5) / 15)).toBeLessThanOrEqual(1);
+    expect(Math.abs(out.data[3 * 4] - (255 * 13.5) / 15)).toBeLessThanOrEqual(1);
+  });
+});
