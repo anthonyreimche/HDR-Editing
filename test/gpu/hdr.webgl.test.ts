@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { CURRENT_PROCESS_VERSION, LEGACY_PROCESS_VERSION } from "@/catalog/types";
 import {
   LINEAR_PROBE_PIPELINE,
+  builtinStages,
   floatImage,
   identityParams,
   rendererBuildError,
@@ -60,8 +61,10 @@ const rebuiltByCore = (x: number, y: number): boolean => {
   return clipped === 1 || clipped === 2;
 };
 
+/** The default shoulder the stage measures against is Basic's, one of the
+ *  built-in stages the shipped app installs. */
 function frames(stages: ProcessingStageContribution[], bags: Record<string, unknown>[], over: Record<string, unknown>): Frame[] {
-  return withRenderer({ stages, pipeline: LINEAR_PROBE_PIPELINE }, (r) => {
+  return withRenderer({ stages: [...builtinStages(), ...stages], pipeline: LINEAR_PROBE_PIPELINE }, (r) => {
     r.setImage(SCENE);
     r.setParams(identityParams(over));
     return bags.map((bag) => {
@@ -93,7 +96,7 @@ const CASES: [string, GainParams][] = [
 
 describe("HDR gain stage on the real renderer", () => {
   it("compiles for both process versions", () => {
-    expect(rendererBuildError({ stages: [gainStage()], pipeline: LINEAR_PROBE_PIPELINE })).toBeNull();
+    expect(rendererBuildError({ stages: [...builtinStages(), gainStage()], pipeline: LINEAR_PROBE_PIPELINE })).toBeNull();
   });
 
   it("changes nothing in a normal render, HDR on or off", () => {

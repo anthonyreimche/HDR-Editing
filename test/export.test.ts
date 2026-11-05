@@ -85,18 +85,18 @@ describe("processExport", () => {
 
   it("falls back to the SDR file, saying why, when reading the edit fails", async () => {
     const blob = sdrJpeg();
-    const d = deps({ edit: async () => { throw new Error("catalog offline"); } });
+    const d = deps({ edit: async () => { throw new Error("catalogue offline"); } });
     expect(await processExport(blob, PHOTO, { output: "ultrahdr" }, CTX, d)).toBe(blob);
     expect(d.warn).toHaveBeenCalledTimes(1);
-    expect(d.warn.mock.calls[0][0]).toContain("catalog offline");
+    expect(d.warn.mock.calls[0][0]).toContain("catalogue offline");
   });
 
   it("tells the user, not only the console, when it falls back to the SDR file", async () => {
     const blob = sdrJpeg();
-    const d = deps({ edit: async () => { throw new Error("catalog offline"); } });
+    const d = deps({ edit: async () => { throw new Error("catalogue offline"); } });
     await processExport(blob, PHOTO, { output: "ultrahdr" }, CTX, d);
     expect(d.notify).toHaveBeenCalledTimes(1);
-    expect(d.notify).toHaveBeenCalledWith(PHOTO, expect.stringContaining("catalog offline"));
+    expect(d.notify).toHaveBeenCalledWith(PHOTO, expect.stringContaining("catalogue offline"));
   });
 
   describe("Ultra HDR", () => {

@@ -19,7 +19,7 @@ env:
   # the manifest, the main bundle and any file it reaches through
   # /__plugins__/<id>/. The list must include the manifest's "main" file, or the
   # job fails. Entries that don't exist are skipped.
-  RELEASE_FILES: safelight.json dist README.md LICENSE THIRD-PARTY-NOTICES.md
+  RELEASE_FILES: safelight.json dist README.md LICENSE NOTICE THIRD-PARTY-NOTICES.md
 
 jobs:
   release:

@@ -85,7 +85,7 @@ l({});
 //#endregion
 //#region src/asset-url.ts
 function u(e) {
-	return `${location.origin}/__plugins__/${r}/${e}?v=1.0.0`;
+	return `${location.origin}/__plugins__/${r}/${e}?v=1.0.1`;
 }
 //#endregion
 //#region src/av1-seq.ts
