@@ -4,9 +4,8 @@
 // Visualize HDR layers. A view change or a geometry edit hides the layers
 // until the pair for it lands (a stale frame would be misplaced). Any other
 // edit keeps the last pair up, decoded with the headroom it was captured with,
-// until the next one lands. The layers also hide while a core canvas tool that
-// draws its own overlay is active, so they never cover its handles, and while
-// a core panel is bypassed, which the captures don't see.
+// until the next one lands. The layers also hide while a core panel is
+// bypassed, which the captures don't see.
 
 import type { ReactElement } from "react";
 import { readbackBitmap } from "./frame";
@@ -66,7 +65,6 @@ export function HdrOverlay(): ReactElement | null {
   const params = dev((s) => s.previewParams ?? s.params);
   // What the canvas draws: a hovered preset's bag while one is previewed.
   const paramBag = dev((s) => s.previewParamBag ?? s.paramBag);
-  const busyTool = dev((s) => s.activeTool !== "none" || s.cropping);
   // A bypassed panel drops out of the live render only: the captures render
   // the photo's params in full, so the pair would show what the view doesn't.
   const bypassed = dev((s) => Object.keys(s.bypassedPanels).length > 0);
@@ -139,7 +137,7 @@ export function HdrOverlay(): ReactElement | null {
   }, [wanted, photoId, params, paramBag, nonce, bypassed]);
 
   const pair = session.pair;
-  if (!eligible || busyTool || bypassed || !rect || !pair || pair.nonce !== nonce) return null;
+  if (!eligible || bypassed || !rect || !pair || pair.nonce !== nonce) return null;
   if (pair.geometry !== geometryOf(params)) return null;
   // The pair's own headroom: its gain map holds each lift as a fraction of it.
   const { headroom } = pair;

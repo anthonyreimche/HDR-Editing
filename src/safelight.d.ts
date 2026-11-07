@@ -33,9 +33,6 @@ export interface DevelopStoreState {
   previewParamBag: Record<string, unknown> | null;
   /** Recomputed by core after every settled render. */
   histogram: object | null;
-  /** "none" unless a core canvas tool (mask, retouch, HSL picker) is active. */
-  activeTool: string;
-  cropping: boolean;
   /** Per-panel preview-off (view-only, momentary), keyed by panel id: the
    *  live render leaves a bypassed panel's contribution out, and the stored
    *  edit is untouched. */

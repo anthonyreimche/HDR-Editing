@@ -17,8 +17,6 @@ interface DevState {
   previewParams: object | null;
   paramBag: Record<string, unknown>;
   previewParamBag: Record<string, unknown> | null;
-  activeTool: string;
-  cropping: boolean;
   bypassedPanels: Record<string, boolean>;
 }
 
@@ -78,8 +76,6 @@ beforeEach(() => {
     previewParams: null,
     paramBag: { [KEY.on]: 1 },
     previewParamBag: null,
-    activeTool: "none",
-    cropping: false,
     bypassedPanels: {},
   }));
   initRuntime({
@@ -446,14 +442,10 @@ describe("HdrOverlay: what it shows", () => {
     expect(captures).toHaveLength(4);
   });
 
-  it("hides the layers while a canvas tool or the crop is active, and before the first layout", async () => {
+  it("shows the layers on core's develop store, which has no tool or crop flags, and hides them before the first layout", async () => {
     const view = await withPair();
     store().getState().setVisualize(true);
-    dev.setState({ activeTool: "mask" });
-    expect(view.render()).toBeNull();
-    dev.setState({ activeTool: "none", cropping: true });
-    expect(view.render()).toBeNull();
-    dev.setState({ cropping: false });
+    expect(layers(view.render())).toHaveLength(1);
     overlay = { rect: null, nonce: 1 };
     expect(view.render()).toBeNull();
   });

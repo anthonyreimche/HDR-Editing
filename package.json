@@ -1,7 +1,7 @@
 {
   "name": "safelight-hdr-editing",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "HDR Editing for Safelight: highlights brighter than SDR white from your edit, an HDR preview on HDR displays, Visualize HDR, an HDR histogram, and Ultra HDR JPEG / HDR AVIF export.",
   "type": "module",
   "scripts": {

@@ -39,8 +39,6 @@ function fakeApi() {
     paramBag: {},
     previewParamBag: null,
     histogram: null,
-    activeTool: "none",
-    cropping: false,
     bypassedPanels: {},
     setDynParams: (patch) => set((s) => ({ paramBag: { ...s.paramBag, ...patch } })),
     commitEdit: async (label) => void commits.push(label),
