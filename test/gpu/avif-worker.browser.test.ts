@@ -8,9 +8,14 @@
 import { describe, expect, it } from "vitest";
 import wasmUrl from "@hdr-modules/@jsquash/avif/codec/enc/avif_enc.wasm?url";
 import { encodeAvif10, type AvifFactory, type AvifLoaders } from "@hdr/avif";
-import { avifWorkerClient, spawnAvifWorker } from "@hdr/avif-worker-client";
+import { avifEncoderFiles, avifWorkerClient, spawnAvifWorker } from "@hdr/avif-worker-client";
 import type { FrameSample } from "@hdr/frame";
 import { hdrToPq10 } from "@hdr/pq";
+import { initRuntime } from "@hdr/runtime";
+import type { SafelightAPI } from "@hdr/safelight";
+
+// The app's api.assetUrl for this extension, as run.cjs serves it.
+initRuntime({ assetUrl: (path: string) => `${location.origin}/__plugins__/hdr-editing/${path}` } as SafelightAPI);
 
 const loaders: AvifLoaders = {
   factory: async () =>
@@ -70,7 +75,7 @@ describe("the HDR AVIF worker in Chromium", () => {
     const before = frames();
     const page = await longestStall(() => encodeAvif10(hdrToPq10(before.sdr, before.gain, 2), W, H, 80, loaders));
 
-    const client = avifWorkerClient(spawnAvifWorker);
+    const client = avifWorkerClient(spawnAvifWorker, avifEncoderFiles);
     const { sdr, gain } = frames();
     const worker = await longestStall(() => client.encode(sdr, gain, 2, 80));
     client.stop();
@@ -93,6 +98,7 @@ describe("the HDR AVIF worker in Chromium", () => {
   it("rejects when the worker file can't be loaded", async () => {
     const client = avifWorkerClient(
       () => new Worker(`${location.origin}/__plugins__/hdr-editing/dist/no-such-worker.js`, { type: "module" }),
+      avifEncoderFiles,
     );
     const { sdr, gain } = frames();
     await expect(client.encode(sdr, gain, 2, 80)).rejects.toThrow(/^the AVIF worker stopped/);

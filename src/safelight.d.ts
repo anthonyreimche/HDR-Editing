@@ -119,6 +119,8 @@ export interface PanelContribution {
     width?: number;
     height?: number;
   };
+  /** The modules the panel may be docked in; omitted, every module (Safelight 3.2.8). */
+  modules?: readonly string[];
   onReset?: () => void;
 }
 
@@ -293,11 +295,39 @@ export interface UiKit {
   Stack: ComponentType<StackProps>;
   Toggle: ComponentType<ToggleProps>;
   tokens: Readonly<Record<string, string>>;
+  /** Tell the person something without stopping them: a bar in the app's
+   *  bottom stack, under your extension's name, with a × to dismiss.
+   *  `info` and `success` go by themselves after a few seconds; `warning`
+   *  and `error` stay; a notice with `progress` (0..1) stays while the run
+   *  is under way. `update` changes it in place, `close` takes it down, and
+   *  core takes it down when your extension stops. Needs Safelight 3.2.7. */
+  notify(notice: string | NoticeOptions): NoticeHandle;
+}
+
+export type NoticeTone = "info" | "success" | "warning" | "error";
+
+export interface NoticeOptions {
+  message: string;
+  /** info and success go by themselves; warning and error stay until dismissed. */
+  tone?: NoticeTone;
+  /** 0..1 while a run is under way, which keeps the notice up; null for none. */
+  progress?: number | null;
+}
+
+export interface NoticeHandle {
+  update(next: Partial<NoticeOptions>): void;
+  close(): void;
 }
 
 export interface SafelightAPI {
   version: 1;
   extensionId: string;
+  /** The URL of one of your own files, `path` from your folder (the one
+   *  safelight.json is in, e.g. "dist/runtime.wasm"), cache-busted by your
+   *  version: for a worker, a WebAssembly binary or a model your bundle loads.
+   *  import.meta.url is undefined in an extension's module, and the same URL
+   *  serves a Developer Tools dev-folder copy. Needs Safelight 3.2.7. */
+  assetUrl(path: string): string;
   react: typeof import("react");
   registerProcessingStage(c: ProcessingStageContribution): void;
   unregisterProcessingStage(id: string): void;

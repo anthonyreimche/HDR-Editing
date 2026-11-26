@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AvifJob, AvifReply } from "../src/avif-job";
-import { avifWorkerClient, spawnAvifWorker, type AvifWorkerLike } from "../src/avif-worker-client";
+import { avifEncoderFiles, avifWorkerClient, spawnAvifWorker, type AvifWorkerLike } from "../src/avif-worker-client";
 import type { FrameSample } from "../src/frame";
+import { initRuntime } from "../src/runtime";
+import type { SafelightAPI } from "../src/safelight";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -34,8 +36,10 @@ function harness() {
     workers.push(w);
     return w;
   });
-  return { client: avifWorkerClient(spawn), workers, spawn };
+  return { client: avifWorkerClient(spawn, () => ENCODER), workers, spawn };
 }
+
+const ENCODER = { glue: "glue.js", wasm: "enc.wasm" };
 
 const frame = (w: number, h: number): FrameSample => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h });
 const FILE = Uint8Array.of(1, 2, 3);
@@ -47,7 +51,7 @@ describe("the AVIF worker client", () => {
     const gain = frame(4, 2);
     const done = client.encode(sdr, gain, 2.5, 70);
     const [{ message, transfer }] = workers[0].posted;
-    expect(message).toEqual({ id: message.id, sdr, gain, headroom: 2.5, quality: 70 });
+    expect(message).toEqual({ id: message.id, sdr, gain, headroom: 2.5, quality: 70, encoder: ENCODER });
     expect(transfer).toEqual([sdr.data.buffer, gain.data.buffer]);
     workers[0].answer({ id: message.id, avif: FILE });
     expect(await done).toBe(FILE);
@@ -130,7 +134,7 @@ describe("the AVIF worker client", () => {
     const client = avifWorkerClient(() => {
       if (calls++ === 0) throw new Error("SecurityError");
       return new FakeWorker();
-    });
+    }, () => ENCODER);
     await expect(client.encode(frame(2, 2), frame(2, 2), 2, 80)).rejects.toThrow("SecurityError");
     void client.encode(frame(2, 2), frame(2, 2), 2, 80);
     expect(calls).toBe(2);
@@ -164,11 +168,11 @@ describe("the AVIF worker client", () => {
   });
 });
 
-// The installed build is the one place import.meta.url is undefined, so the
-// worker is reached through the plugin's served path, as the wasm is.
+const assetUrl = (path: string) => `app://bundle/__plugins__/hdr-editing/${path}?v=9.9.9`;
+
 describe("spawnAvifWorker", () => {
-  it("loads the worker as a module from the plugin's dist folder, versioned", () => {
-    vi.stubGlobal("location", { origin: "app://safelight" });
+  it("loads the worker as a module from the extension's asset URL", () => {
+    initRuntime({ assetUrl } as SafelightAPI);
     const made: { url: string; options: WorkerOptions }[] = [];
     vi.stubGlobal(
       "Worker",
@@ -180,8 +184,13 @@ describe("spawnAvifWorker", () => {
       },
     );
     spawnAvifWorker();
-    expect(made).toHaveLength(1);
-    expect(made[0].url).toMatch(/^app:\/\/safelight\/__plugins__\/hdr-editing\/dist\/avif-worker\.js\?v=\d+\.\d+\.\d+$/);
-    expect(made[0].options).toEqual({ type: "module" });
+    expect(made).toEqual([{ url: assetUrl("dist/avif-worker.js"), options: { type: "module" } }]);
+  });
+});
+
+describe("avifEncoderFiles", () => {
+  it("names the encoder's glue and wasm by the extension's asset URLs", () => {
+    initRuntime({ assetUrl } as SafelightAPI);
+    expect(avifEncoderFiles()).toEqual({ glue: assetUrl("dist/avif_enc.js"), wasm: assetUrl("dist/avif_enc.wasm") });
   });
 });

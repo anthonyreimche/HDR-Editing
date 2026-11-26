@@ -6,9 +6,10 @@
 // buffer moves back, so nothing is copied. A worker that fails is dropped with
 // whatever it had pending, and the next encode starts a new one.
 
-import { assetUrl } from "./asset-url";
+import type { AvifEncoderFiles } from "./avif";
 import type { AvifJob, AvifReply } from "./avif-job";
 import type { FrameSample } from "./frame";
+import { api } from "./runtime";
 
 /** What the client uses of a Worker. */
 export interface AvifWorkerLike {
@@ -27,17 +28,19 @@ export interface AvifWorkerClient {
   stop(): void;
 }
 
-/** Loaded through the plugin's served path, as the encoder's files are:
- *  import.meta.url is undefined in installed bundles. */
 export function spawnAvifWorker(): AvifWorkerLike {
-  return new Worker(assetUrl("dist/avif-worker.js"), { type: "module" });
+  return new Worker(api().assetUrl("dist/avif-worker.js"), { type: "module" });
+}
+
+export function avifEncoderFiles(): AvifEncoderFiles {
+  return { glue: api().assetUrl("dist/avif_enc.js"), wasm: api().assetUrl("dist/avif_enc.wasm") };
 }
 
 /** A SharedArrayBuffer can't be transferred; posting shares it instead. */
 const transferable = (...frames: FrameSample[]): ArrayBuffer[] =>
   frames.map((f) => f.data.buffer).filter((b): b is ArrayBuffer => b instanceof ArrayBuffer);
 
-export function avifWorkerClient(spawn: () => AvifWorkerLike): AvifWorkerClient {
+export function avifWorkerClient(spawn: () => AvifWorkerLike, encoder: () => AvifEncoderFiles): AvifWorkerClient {
   let worker: AvifWorkerLike | null = null;
   let nextId = 1;
   const pending = new Map<number, { resolve(avif: Uint8Array): void; reject(err: Error): void }>();
@@ -79,7 +82,7 @@ export function avifWorkerClient(spawn: () => AvifWorkerLike): AvifWorkerClient 
         try {
           worker ??= start();
           pending.set(id, { resolve, reject });
-          worker.postMessage({ id, sdr, gain, headroom, quality }, transferable(sdr, gain));
+          worker.postMessage({ id, sdr, gain, headroom, quality, encoder: encoder() }, transferable(sdr, gain));
         } catch (err) {
           pending.delete(id);
           reject(err);
@@ -89,4 +92,4 @@ export function avifWorkerClient(spawn: () => AvifWorkerLike): AvifWorkerClient 
   };
 }
 
-export const avifWorker = avifWorkerClient(spawnAvifWorker);
+export const avifWorker = avifWorkerClient(spawnAvifWorker, avifEncoderFiles);

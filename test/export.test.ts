@@ -4,7 +4,7 @@ import { readNclx } from "../src/avif-box";
 import { readExif } from "../src/avif-exif";
 import type { AvifJob, AvifReply } from "../src/avif-job";
 import { avifWorker, type AvifWorkerLike } from "../src/avif-worker-client";
-import { historyCursor, liveExportDeps, processExport, sameShape, type ExportDeps } from "../src/export";
+import { fallbackBoard, historyCursor, liveExportDeps, processExport, sameShape, type ExportDeps } from "../src/export";
 import type { FrameSample } from "../src/frame";
 import { encodeGreyJpeg } from "../src/jpeg-encode";
 import { concat, parseJpeg, payloadOf, segment, startsWith } from "../src/jpeg";
@@ -435,8 +435,10 @@ describe("liveExportDeps", () => {
   function host(state: unknown, rendered: unknown[] = [{ blob: new Blob(["png"]), width: 1, height: 1 }]) {
     const getEditState = vi.fn(async () => state);
     const renderPhotos = vi.fn(async () => rendered);
-    initRuntime({ catalog: { getEditState }, export: { renderPhotos } } as unknown as SafelightAPI);
-    return { getEditState, renderPhotos };
+    const notify = vi.fn(() => ({ update: vi.fn(), close: vi.fn() }));
+    const assetUrl = (path: string) => `app://bundle/__plugins__/hdr-editing/${path}`;
+    initRuntime({ assetUrl, catalog: { getEditState }, export: { renderPhotos }, ui: { notify } } as unknown as SafelightAPI);
+    return { getEditState, renderPhotos, notify };
   }
 
   it("reads the stage params and develop params of the snapshot at the edit's cursor", async () => {
@@ -496,9 +498,15 @@ describe("liveExportDeps", () => {
     );
   });
 
+  it("tells the user, in a warning notice, which photo fell short and why", () => {
+    const { notify } = host(null);
+    fallbackBoard.clear();
+    liveExportDeps().notify(PHOTO, "was exported without HDR: boom");
+    expect(notify).toHaveBeenCalledWith({ message: "p1 was exported without HDR: boom", tone: "warning" });
+  });
+
   it("never lets a notice that can't be shown cost the export its file", () => {
-    // No document here, as when the window is gone mid-export.
-    host(null);
+    initRuntime({} as SafelightAPI);
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     try {
       expect(() => liveExportDeps().notify(PHOTO, "was exported without HDR: boom")).not.toThrow();

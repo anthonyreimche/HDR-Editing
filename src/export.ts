@@ -5,7 +5,7 @@
 // Ultra HDR JPEG, or has the AVIF worker rebuild the HDR rendition from the
 // core's file and the gain map into a PQ Rec.2020 AVIF (avif-worker-client.ts).
 // Anything that goes wrong for a photo falls back to the core's SDR file; the
-// batch goes on. The fallback is logged and shown to the user (notice.ts), as
+// batch goes on. The fallback is logged and shown to the user in a notice, as
 // the file that comes out looks like any other export.
 //
 // The gain map is rendered at the export's own long-edge setting, not the size
@@ -34,14 +34,72 @@ import { readbackBitmap, resizeFrame, type FrameSample } from "./frame";
 import { encodeGreyJpeg } from "./jpeg-encode";
 import { jpegSize } from "./jpeg";
 import type { GainParams } from "./model";
-import { fallbackBoard } from "./notice";
 import { GAIN_MAP_PATCH, isCurrentProcessing, readParams } from "./params";
 import { checkGainMapSize } from "./pq";
 import { api } from "./runtime";
-import type { CatalogPhotoLike, ExportProcessorContext, ExportProcessorField, ExportSettingsPatch } from "./safelight";
+import type {
+  CatalogPhotoLike,
+  ExportProcessorContext,
+  ExportProcessorField,
+  ExportSettingsPatch,
+  NoticeHandle,
+  NoticeOptions,
+} from "./safelight";
 import { assembleUltraHdr } from "./ultrahdr";
 
 export const GAIN_MAP_QUALITY = 90;
+
+export interface Fallback {
+  /** The photo's filename. */
+  label: string;
+  /** What happened to it, as a clause to follow the label. */
+  problem: string;
+}
+
+export function describeFallbacks(entries: Fallback[]): string {
+  const [first] = entries;
+  if (entries.length === 1) return `${first.label} ${first.problem}`;
+  return `${entries.length} photos didn't export as asked. First: ${first.label} ${first.problem}`;
+}
+
+/** An export starts a new tally once this long has passed since the last
+ *  photo fell back. */
+const SAME_EXPORT_MS = 5 * 60_000;
+
+export interface FallbackBoard {
+  add(label: string, problem: string): void;
+  clear(): void;
+}
+
+/** Collects the photos that fell short during one export and shows the tally
+ *  after each one. The processor is told about one photo at a time and not
+ *  when an export begins, so a gap in time separates exports. Each tally is a
+ *  new notice: one the user dismissed can't be updated. */
+export function createFallbackBoard(
+  notify: (notice: NoticeOptions) => NoticeHandle,
+  now: () => number = Date.now,
+): FallbackBoard {
+  let entries: Fallback[] = [];
+  let last = 0;
+  let shown: NoticeHandle | null = null;
+  return {
+    add(label, problem) {
+      const t = now();
+      if (t - last > SAME_EXPORT_MS) entries = [];
+      last = t;
+      entries.push({ label, problem });
+      shown?.close();
+      shown = notify({ message: describeFallbacks(entries), tone: "warning" });
+    },
+    clear() {
+      entries = [];
+      shown?.close();
+      shown = null;
+    },
+  };
+}
+
+export const fallbackBoard = createFallbackBoard((notice) => api().ui.notify(notice));
 
 const DEFAULT_AVIF_QUALITY = 80;
 

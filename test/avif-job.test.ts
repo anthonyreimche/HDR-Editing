@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { encodeAvif10, resetAvifEncoder, type AvifLoaders } from "../src/avif";
+import { encodeAvif10, resetAvifEncoder, type AvifEncoderFiles, type AvifLoaders } from "../src/avif";
 import { readNclx } from "../src/avif-box";
 import { runAvifJob, serveAvifJobs, type AvifJob, type AvifReply, type AvifWorkerScope } from "../src/avif-job";
 import type { FrameSample } from "../src/frame";
@@ -20,6 +20,7 @@ const job = (over: Partial<AvifJob> = {}): AvifJob => ({
   gain: gradient(32, 24, 0),
   headroom: 2,
   quality: 80,
+  encoder: { glue: "glue.js", wasm: "enc.wasm" },
   ...over,
 });
 
@@ -90,7 +91,7 @@ describe("serveAvifJobs", () => {
 
   it("answers each job with its file, transferring the file's buffer", async () => {
     const { s, posted, settled } = scope();
-    serveAvifJobs(s, loaders);
+    serveAvifJobs(s, () => loaders);
     s.onmessage?.({ data: job({ id: 11 }) } as MessageEvent<AvifJob>);
     await settled();
     const [{ message, transfer }] = posted;
@@ -101,9 +102,21 @@ describe("serveAvifJobs", () => {
 
   it("answers a failed job with its error and transfers nothing", async () => {
     const { s, posted, settled } = scope();
-    serveAvifJobs(s, offline);
+    serveAvifJobs(s, () => offline);
     s.onmessage?.({ data: job({ id: 12 }) } as MessageEvent<AvifJob>);
     await settled();
     expect(posted).toEqual([{ message: { id: 12, error: "offline" }, transfer: [] }]);
+  });
+
+  it("loads the encoder from the files the job names", async () => {
+    const { s, settled } = scope();
+    const asked: AvifEncoderFiles[] = [];
+    serveAvifJobs(s, (files) => {
+      asked.push(files);
+      return offline;
+    });
+    s.onmessage?.({ data: job({ id: 13, encoder: { glue: "a.js", wasm: "a.wasm" } }) } as MessageEvent<AvifJob>);
+    await settled();
+    expect(asked).toEqual([{ glue: "a.js", wasm: "a.wasm" }]);
   });
 });

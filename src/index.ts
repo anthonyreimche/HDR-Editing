@@ -7,9 +7,8 @@
 // section (export.ts).
 
 import { avifWorker } from "./avif-worker-client";
-import { PROCESSOR_FIELDS, liveExportDeps, processExport } from "./export";
+import { PROCESSOR_FIELDS, fallbackBoard, liveExportDeps, processExport } from "./export";
 import { DISPLAY_HEADROOM_KEY, HdrOverlay } from "./HdrOverlay";
-import { disposeNotice } from "./notice";
 import { HdrPanel } from "./Panel";
 import { OVERLAY_ID, PANEL_ID, PROCESSOR_ID, resetPatch } from "./params";
 import { api, initRuntime } from "./runtime";
@@ -36,6 +35,7 @@ export function activate(host: SafelightAPI): void {
     component: HdrPanel,
     // Right after core Basic (order 5), whose tone decisions it extends.
     defaultDock: { module: "develop", direction: "right", order: 5.5, width: 280 },
+    modules: ["develop"],
     onReset: reset,
   });
 
@@ -70,7 +70,7 @@ export function activate(host: SafelightAPI): void {
 
 export function deactivate(): void {
   avifWorker.stop();
-  disposeNotice();
+  fallbackBoard.clear();
   unwatchSupport();
   try {
     clearStore();

@@ -46,6 +46,7 @@ function fakeApi() {
   const host = {
     version: 1,
     extensionId: "hdr-editing",
+    assetUrl: (path: string) => `app://bundle/__plugins__/hdr-editing/${path}`,
     registerProcessingStage: (c: ProcessingStageContribution) => void registered.stages.push(c),
     unregisterProcessingStage: (id: string) => void registered.unregisteredStages.push(id),
     registerPanel: (c: PanelContribution) => void registered.panels.push(c),

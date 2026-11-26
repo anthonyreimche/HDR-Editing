@@ -2,7 +2,7 @@
 // rendition of an SDR frame and its gain map (pq.ts), then the 10-bit encode
 // (avif.ts), which keeps its compiled module in the worker between jobs.
 
-import { encodeAvif10, type AvifLoaders } from "./avif";
+import { encodeAvif10, type AvifEncoderFiles, type AvifLoaders } from "./avif";
 import type { FrameSample } from "./frame";
 import { hdrToPq10 } from "./pq";
 
@@ -12,6 +12,7 @@ export interface AvifJob {
   gain: FrameSample;
   headroom: number;
   quality: number;
+  encoder: AvifEncoderFiles;
 }
 
 export type AvifReply = { id: number; avif: Uint8Array } | { id: number; error: string };
@@ -35,9 +36,9 @@ export async function runAvifJob(job: AvifJob, loaders: AvifLoaders): Promise<Av
 }
 
 /** Answers each job posted to `scope`, moving the file's buffer to the page. */
-export function serveAvifJobs(scope: AvifWorkerScope, loaders: AvifLoaders): void {
+export function serveAvifJobs(scope: AvifWorkerScope, loaders: (files: AvifEncoderFiles) => AvifLoaders): void {
   scope.onmessage = ({ data }) => {
-    void runAvifJob(data, loaders).then((reply) =>
+    void runAvifJob(data, loaders(data.encoder)).then((reply) =>
       scope.postMessage(reply, "avif" in reply && reply.avif.buffer instanceof ArrayBuffer ? [reply.avif.buffer] : []),
     );
   };

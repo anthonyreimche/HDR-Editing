@@ -1,12 +1,12 @@
 // The AVIF encoder, run in the AVIF worker (avif-job.ts): jSquash 2.1.1's
 // single-thread libavif + aom build, compiled once, on the first HDR AVIF
 // export, and instantiated for each encode. The glue and wasm sit next to the
-// bundle (scripts/copy-assets.mjs) and load through asset URLs;
+// bundle (scripts/copy-assets.mjs) and load through the asset URLs the page
+// hands the worker with each job (api.assetUrl; the worker has no api);
 // instantiateWasm hands the glue a module compiled here, so it never has to
 // locate the wasm itself. jSquash's own init() isn't used: the app is
 // cross-origin isolated, so it would choose the threaded build.
 
-import { assetUrl } from "./asset-url";
 import { patchNclx, patchSequenceHeaderCicp } from "./avif-box";
 
 export interface AvifOptions {
@@ -33,6 +33,12 @@ export type AvifFactory = (overrides: {
   locateFile(path: string): string;
   instantiateWasm(imports: WebAssembly.Imports, done: (instance: WebAssembly.Instance) => void): object;
 }) => Promise<AvifModule>;
+
+/** The encoder's glue and wasm URLs. */
+export interface AvifEncoderFiles {
+  glue: string;
+  wasm: string;
+}
 
 export interface AvifLoaders {
   factory(): Promise<AvifFactory>;
@@ -151,12 +157,11 @@ export async function encodeAvif10(
   return out;
 }
 
-export function liveAvifLoaders(): AvifLoaders {
+export function liveAvifLoaders(files: AvifEncoderFiles): AvifLoaders {
   return {
-    factory: () =>
-      import(/* @vite-ignore */ assetUrl("dist/avif_enc.js")).then((m: { default: AvifFactory }) => m.default),
+    factory: () => import(/* @vite-ignore */ files.glue).then((m: { default: AvifFactory }) => m.default),
     wasm: () =>
-      fetch(assetUrl("dist/avif_enc.wasm")).then((r) => {
+      fetch(files.wasm).then((r) => {
         if (!r.ok) throw new Error(`[hdr-editing] AVIF encoder unavailable (${r.status})`);
         return r.arrayBuffer();
       }),
